@@ -1,0 +1,75 @@
+﻿<Page
+    x:Class="NaeDeviceApp.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NaeDeviceApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Main"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:ScenarioBindingConverter x:Key="ScenarioConverter"></local:ScenarioBindingConverter>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource AppBarItemForegroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <!--var speed = $"{speedInMph:0.0}";
+            var direction = $"{_gpsData.Direction:0.0}";
+            var xxxx = $"{TelemetryData.ImuHeading:0.0}";
+            var xxxx = $"{TelemetryData.ImuLinAccelX:0.00}";
+
+
+            var xxxx = $"{TelemetryData.AtmTemp:0.0}";
+            var xxxx = $"{TelemetryData.AtmHumidity:0.0}";
+            var xxxx = $"{TelemetryData.AtmPressure:0.0}";
+            var xxxx = $"{TelemetryData.SensorAltitudeMeters:0.0}";
+
+
+            var fix = $"{_gpsData.Fix:0}";
+            var xxxx = $"{_gpsData.Satellites:0}";
+            var xxxx = $"{TelemetryData.SoundAmp:0}";
+            var xxxx = $"{TelemetryData.DevVoltage:0.0}";-->
+
+
+            <StackPanel  Orientation="Horizontal" Grid.Row="0" >
+                <TextBlock Text="Coordinates:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Coordinates"  Text="45.9875 / -87.1234" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Speed:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Speed"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Direction:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Direction"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Acceleration:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Acceleration"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+            </StackPanel>
+            <StackPanel  Orientation="Horizontal" Grid.Row="0" >
+                <TextBlock Text="Temp:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Temp"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Humidity:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Humidity"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Pressure:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Pressure"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Altitude:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Altitude"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+            </StackPanel>
+            <StackPanel  Orientation="Horizontal" Grid.Row="0" >
+                <TextBlock Text="Fix:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Fix"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Satellites:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Satellites"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Sound Pres:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Sound"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+                <TextBlock Text="Voltage:" Margin="10,10,0,0"  TextAlignment="Right" FontSize="24" Foreground="White" Height="32" Width="150" />
+                <TextBlock Name="Voltage"  Text="" Margin="10,10,0,0"  TextAlignment="Left" FontSize="24" Foreground="White" Height="32"  Width="279"/>
+            </StackPanel>
+            <StackPanel>
+                <Image x:Name="WindowsLogo" Stretch="None" Source="Assets/SplashScreen.scale-200.png" Margin="32,136,0,0" HorizontalAlignment="Left" Width="1239" Height="590" VerticalAlignment="Top" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

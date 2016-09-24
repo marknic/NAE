@@ -41,7 +41,7 @@ namespace NaeDeviceApp
         /// <param name="dataIn">string of telemetry data</param>
         public static void ProcessData(string dataIn)
         {
-
+            //dataIn.DebugWriteLineEscChars("Telem2>|", "|");
 
             if (string.IsNullOrWhiteSpace(dataIn))
             {
@@ -66,7 +66,6 @@ namespace NaeDeviceApp
                     if (dataSplit.Length != 25)
                     {
                         Debug.WriteLine($"Error only {dataSplit.Length} values. Data: '{dataIn}'");
-
                     }
                     else
                     {

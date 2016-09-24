@@ -1,0 +1,5 @@
+﻿{
+  "telemetryFileName": "telemetry.csv",
+  "udpTargetIpAddress": "192.168.1.243",
+  "udpTargetPortNumber": 11000
+}

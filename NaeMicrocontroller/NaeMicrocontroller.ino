@@ -217,19 +217,17 @@ void mag_calibration()
 
 void blinkFast(uint8_t rate)
 {
+    int blinkRate = 1000 / (rate * 2);
+
     while (TRUE)
     {
-        for (int i = 0; i < rate; i++) {
-            digitalWrite(PIN_CALIBRATION_LED, HIGH);
+        digitalWrite(PIN_CALIBRATION_LED, HIGH);
 
-            delay(150);
+        delay(blinkRate);
 
-            digitalWrite(PIN_CALIBRATION_LED, LOW);
+        digitalWrite(PIN_CALIBRATION_LED, LOW);
 
-            delay(250);
-        }
-
-        delay(1500);
+        delay(blinkRate);
     }
 }
 
@@ -241,15 +239,21 @@ void setup()
 
     Serial.begin(SERIAL_PORT_BAUD);
 
+    delay(2000);
+
+    Serial.println("Starting...");
+
     if (!atmSensor.begin())
     {
-        blinkFast(1);
+        Serial.println("Failed Atmospheric Sensor");
+        //blinkFast(2);
     }
 
     /* Initialise the sensor */
     if (!bno.begin())
     {
-        blinkFast(2);
+        Serial.println("Failed Accelerometer");
+        //blinkFast(2);
     }
 
     delay(1000);
@@ -261,6 +265,9 @@ void setup()
     _voltageValues.calculatedSmoothedVoltage = 8.4;
 
     buffer[0] = 0;
+
+    Serial.println("Setup Done!");
+
 }
 
 
@@ -534,6 +541,6 @@ void loop()
     Serial.print(buffer);
     //Serial.println("gabye");
 
-    delay(250);
+    delay(500);
 
 }

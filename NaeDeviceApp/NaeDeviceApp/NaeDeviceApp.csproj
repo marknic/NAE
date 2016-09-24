@@ -89,6 +89,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <None Include="config.json" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +97,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="DateTimeTracker.cs" />
+    <Compile Include="DebugHelper.cs" />
     <Compile Include="DisplayConfigurations.cs" />
     <Compile Include="GpsData.cs" />
     <Compile Include="MainPage.xaml.cs">

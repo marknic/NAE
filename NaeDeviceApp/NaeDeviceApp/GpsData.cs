@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NaeDeviceApp
 {
@@ -67,7 +68,9 @@ namespace NaeDeviceApp
 
             if (calculatedCheckSum != sentenceInChecksum)
             {
-                Debug.WriteLine($"Bad checksum - In: {sentenceInChecksum} vs Calculated: {calculatedCheckSum} in sentence: '{sentence}'");
+                Debug.WriteLine($"Bad checksum - In: {sentenceInChecksum} vs Calculated: {calculatedCheckSum}");
+
+                sentence.DebugWriteLineEscChars("GPS Checksum error: |", "|\n");
             }
 
             return calculatedCheckSum == sentenceInChecksum;
@@ -107,25 +110,79 @@ namespace NaeDeviceApp
             {
                 while (eolPos > -1)
                 {
+                    var dollarPos = dataIn.IndexOf('$');
+
+                    if (dollarPos != -1 && dollarPos < eolPos)
+                    {
+                        if (dollarPos > 0)
+                        {
+                            dataIn = dataIn.Remove(0, dollarPos - 1);
+                        }
+                        _sentenceBuffer = string.Empty;
+                    }
+
                     _sentenceBuffer += dataIn.Substring(0, eolPos);
 
                     var asteriskPos = _sentenceBuffer.IndexOf('*');
-                    var goodSentence = _sentenceBuffer.IndexOf('$') > -1 && asteriskPos > -1 && _sentenceBuffer.Length >= asteriskPos + 1;
+                    var goodSentence = _sentenceBuffer.IndexOf('$') > -1 && asteriskPos > -1 &&
+                                       _sentenceBuffer.Length >= asteriskPos + 1;
 
-                    if (IsSentenceProperlyFormatted(_sentenceBuffer) == false)
+                    var prefix = _sentenceBuffer.Substring(3, 3);
+
+                    var goodToCheck = prefix == "RMC" || prefix == "GGA" || prefix == "GLL";
+
+
+                    if (goodToCheck && goodSentence)
                     {
-                        Debug.WriteLine($"GPS Sentence error: {_sentenceBuffer}'");
-                    }
-                    else
-                    {
-                        try
+                        if (IsSentenceProperlyFormatted(_sentenceBuffer) == false)
                         {
-                            //Debug.WriteLine("Parsing the sentence...");
-                            ParseData(_sentenceBuffer);
+                            var pattern = "---";
+
+                            switch (prefix)
+                            {
+                                case "RMC":
+                                    pattern = @"\$GNRMC,\d{5,6}\.\d{2,3},A,\d{4}\.\d{5,6},[N,S],\d{5}\.\d{5,6},[W,E]";
+                                    break;
+
+                                case "GGA":
+                                    pattern = @"\$GNGGA,\d{5,6}\.\d{2,3},\d{4}\.\d{5,6},[N,S],\d{5}\.\d{5,6},[W,E]";
+                                    break;
+
+                                case "GLL":
+                                    pattern = @"\\$GNGLL,\d{4}\.\d{5,6},[N,S],\d{5}\.\d{5,6},[W,E],\d{5,6}\.\d{2,3}";
+                                    break;
+                            }
+
+                            var regex = new Regex(pattern);
+
+                            var match = regex.Match(_sentenceBuffer);
+
+                            if (match.Success)
+                            {
+                                var result = match.Captures[0].Value;
+
+                                ParsePartialData(result);
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"GPS Sentence error: |{_sentenceBuffer}|");
+                                _sentenceBuffer.DebugWriteLineEscChars("GPS Formatting Error: |", "|");
+                                dataIn.DebugWriteLineEscChars("dataIn: |", "|\n");
+                            }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Debug.WriteLine($"error converting telemetry data: {ex.Message}");
+                            try
+                            {
+                                //Debug.WriteLine("Parsing the sentence...");
+                                ParseData(_sentenceBuffer);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"error parsing gps sentence: {ex.Message}");
+                                _sentenceBuffer.DebugWriteLineEscChars("GPS Parsing Error: |", "|\n");
+                                dataIn.DebugWriteLineEscChars("dataIn: |", "|\n");
+                            }
                         }
                     }
 
@@ -255,11 +312,11 @@ namespace NaeDeviceApp
         {
             if (string.IsNullOrWhiteSpace(value)) return;
 
-            if (value.Length != 6) return;
+            if (value.Length != 6 || value.Length != 9) return;
 
             try
             {
-                var time = SafeConvertInt(value);
+                var time = SafeConvertInt(value.Substring(0, 6));
 
                 var hour = time / 10000;
                 var minute = (time % 10000) / 100;
@@ -313,10 +370,86 @@ namespace NaeDeviceApp
         }
 
 
+        private void ParsePartialData(string sentence)
+        {
+            if (string.IsNullOrWhiteSpace(sentence)) return;
+            //if (!ValidateChecksum(sentence)) return;
+
+            double tmpLat;
+            double tmpLon;
+
+            var parts = sentence.Split(',');
+
+            if (sentence.StartsWith("$GPRMC") || sentence.StartsWith("$GNRMC"))
+            {
+                UpdateTime(parts[1]);
+
+                tmpLat = ConvertToDegrees(parts[3], parts[4]);
+                tmpLon = ConvertToDegrees(parts[5], parts[6]);
+
+                if (Math.Abs(tmpLat) > 0.0)
+                {
+                    LatitudeDegrees = tmpLat;
+                }
+
+                if (Math.Abs(tmpLon) > 0.0)
+                {
+                    LongitudeDegrees = tmpLon;
+                }
+
+                //SpeedInKph = ConvertToKilometersPerHour(parts[7]);
+
+                //Direction = SafeConvertDouble(parts[8]);
+            }
+            else if (sentence.StartsWith("$GPGGA") || sentence.StartsWith("$GNGGA"))
+            {
+                UpdateTime(parts[1]);
+
+                if (parts[2].Length >= 6)
+                {
+                    tmpLat = ConvertToDegrees(parts[2], parts[3]);
+
+                    if (Math.Abs(tmpLat) > 0.0)
+                    {
+                        LatitudeDegrees = tmpLat;
+                    }
+                }
+
+                if (parts[4].Length >= 6)
+                {
+                    tmpLon = ConvertToDegrees(parts[4], parts[5]);
+
+                    if (Math.Abs(tmpLon) > 0.0)
+                    {
+                        LongitudeDegrees = tmpLon;
+                    }
+                }
+            }
+            else if (sentence.StartsWith("$GPGLL") || sentence.StartsWith("$GNGLL"))
+            {
+                UpdateTime(parts[5]);
+
+                if (parts[2].Length >= 6)
+                {
+                    LatitudeDegrees = ConvertToDegrees(parts[2], parts[3]);
+                }
+
+                if (parts[4].Length >= 6)
+                {
+                    LongitudeDegrees = ConvertToDegrees(parts[4], parts[5]);
+                }
+            }
+        }
+
+
+
         private void ParseData(string sentence)
         {
             if (string.IsNullOrWhiteSpace(sentence)) return;
             if (!ValidateChecksum(sentence)) return;
+
+            double tmpLat;
+            double tmpLon;
 
             var parts = sentence.Split(',');
 
@@ -324,9 +457,18 @@ namespace NaeDeviceApp
             {
                 UpdateDateTime(parts[9], parts[1]);
 
-                LatitudeDegrees = ConvertToDegrees(parts[3], parts[4]);
+                tmpLat = ConvertToDegrees(parts[3], parts[4]);
+                tmpLon = ConvertToDegrees(parts[5], parts[6]);
 
-                LongitudeDegrees = ConvertToDegrees(parts[5], parts[6]);
+                if (Math.Abs(tmpLat) > 0.0)
+                {
+                    LatitudeDegrees = tmpLat;
+                }
+
+                if (Math.Abs(tmpLon) > 0.0)
+                {
+                    LongitudeDegrees = tmpLon;
+                }
 
                 SpeedInKph = ConvertToKilometersPerHour(parts[7]);
 
@@ -338,15 +480,25 @@ namespace NaeDeviceApp
 
                 if (parts[2].Length >= 6)
                 {
-                    LatitudeDegrees = ConvertToDegrees(parts[2], parts[3]);
+                    tmpLat = ConvertToDegrees(parts[2], parts[3]);
+
+                    if (Math.Abs(tmpLat) > 0.0)
+                    {
+                        LatitudeDegrees = tmpLat;
+                    }
                 }
 
                 if (parts[4].Length >= 6)
                 {
-                    LongitudeDegrees = ConvertToDegrees(parts[4], parts[5]);
+                    tmpLon = ConvertToDegrees(parts[4], parts[5]);
+
+                    if (Math.Abs(tmpLon) > 0.0)
+                    {
+                        LongitudeDegrees = tmpLon;
+                    }
                 }
 
-                Fix = SafeConvertInt(parts[6]); //((parts[6] == "1") || (parts[6] == "2"));
+                Fix = SafeConvertInt(parts[6]);
 
                 Satellites = SafeConvertInt(parts[7]);
 
